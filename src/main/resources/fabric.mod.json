@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "wasm",
+  "version": "${version}",
+  "name": "WASM Fabric",
+  "description": "WASM Runtime for datapack",
+  "authors": [
+    "Boomber"
+  ],
+  "contributors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/wasm/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.boomber.wasm.WasmFabric"
+    ],
+    "client": [],
+    "server": []
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.9.1",
+    "fabric": "*"
+  }
+}
