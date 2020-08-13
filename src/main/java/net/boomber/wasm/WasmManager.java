@@ -1,10 +1,12 @@
 package net.boomber.wasm;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.boomber.wasm.module.FunctionNotFoundException;
+import net.boomber.wasm.module.ReturnPointer.DataPointer;
+import net.boomber.wasm.module.StringPointer;
+import net.boomber.wasm.module.WasmModule;
 import net.minecraft.util.Identifier;
 
 /**
@@ -28,39 +30,22 @@ public class WasmManager {
 
 	public static void TestModules() {
 		for (WasmModule module : WasmManager.modules.values()) {
-			Collection<BoxedPointer> freePtrs = new ArrayList<>();
-
+			WasmFabric.info("");
 			WasmFabric.info("Running " + module.id + "...");
 
 			try {
 				String content = "Hello, world!";
 				WasmFabric.info("Input: '" + content + "'");
-
-				WasmFabric.info("Passing `content` into WASM's memory");
-				BoxedPointer contentPtr = module.passStringToWasm(content);
-//					freePtrs.add(contentPtr);
-
-				int retPtr = module.getReturnPointer();
-//					freePtrs.add(new BoxedPointer(retPtr, 16));
-
-				WasmFabric.info("Calling function with " + contentPtr);
-				module.getFunction("reverse").apply(retPtr, contentPtr.pointer,
-						contentPtr.length);
-
-				BoxedPointer resultPtr = module.getBoxedPointer(retPtr);
-				WasmFabric.info("Convert retPtr (" + retPtr + ") into boxedPointer (" + resultPtr + ")");
-				freePtrs.add(resultPtr);
-
-				WasmFabric.info("Getting result string from WASM's memory");
-				String result = module.getStringFromWasm(resultPtr);
-				WasmFabric.info("result: " + result);
-
-			} catch (ClassCastException e) {
+				
+				StringPointer strPtr = module.uploadString(content);
+				DataPointer retPtr = module.call("reverse", strPtr.address, strPtr.size);
+				StringPointer resPtr = new StringPointer(retPtr);
+				
+				String result = module.takeString(resPtr);
+				WasmFabric.info("Result: " + result);
+				
+			} catch (FunctionNotFoundException e) {
 				WasmFabric.error(e.getMessage());
-			} finally {
-				for (BoxedPointer ptr : freePtrs) {
-					module.free(ptr);
-				}
 			}
 		}
 	}

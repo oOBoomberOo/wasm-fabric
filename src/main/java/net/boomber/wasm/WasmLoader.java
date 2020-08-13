@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import net.boomber.wasm.module.WasmModule;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -30,17 +31,18 @@ public class WasmLoader implements IdentifiableResourceReloadListener {
 				.thenCompose(synchronizer::whenPrepared);
 
 		return preparedResources.thenRunAsync(() -> {
+			// Is this *really* the right place?
 			Collection<Identifier> moduleIds = wasmResources.join();
 
 			WasmManager.clear();
 
 			for (Identifier id : moduleIds) {
 				try {
-					WasmModule module = new WasmModule(manager, id, "memory");
+					WasmModule module = WasmModule.fromManager(manager, id);
 					WasmFabric.info("Added WASM Module: " + id);
 					WasmManager.add(id, module);
-				} catch (RuntimeException | IOException e) {
-					WasmFabric.error("Failed to instantiate module: " + id + ", error: " + e.getMessage());
+				} catch (IOException e) {
+					WasmFabric.error(e.getMessage());
 				}
 			}
 		});

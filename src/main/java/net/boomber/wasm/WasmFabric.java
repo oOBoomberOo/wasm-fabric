@@ -41,8 +41,4 @@ public class WasmFabric implements ModInitializer {
     public static void error(String message) {
         log(Level.ERROR, message);
     }
-
-    public static void debug(String message) {
-        log(Level.WARN, message);
-    }
 }
