@@ -26,50 +26,42 @@ public class WasmManager {
 		modules.clear();
 	}
 
-	// TODO: Try to fix `Aborted (core dumped)` error
 	public static void TestModules() {
-		try {
-			for (WasmModule module : WasmManager.modules.values()) {
-				Collection<BoxedPointer> freePtrs = new ArrayList<>();
+		for (WasmModule module : WasmManager.modules.values()) {
+			Collection<BoxedPointer> freePtrs = new ArrayList<>();
 
-				WasmFabric.info("Running " + module.id + "...");
+			WasmFabric.info("Running " + module.id + "...");
 
-				try {
-					String content = "Hello, world!";
-					WasmFabric.info("Input: '" + content + "'");
+			try {
+				String content = "Hello, world!";
+				WasmFabric.info("Input: '" + content + "'");
 
-					WasmFabric.info("Passing `content` into WASM's memory");
-					BoxedPointer contentPtr = module.passStringToWasm(content);
-					freePtrs.add(contentPtr);
+				WasmFabric.info("Passing `content` into WASM's memory");
+				BoxedPointer contentPtr = module.passStringToWasm(content);
+//					freePtrs.add(contentPtr);
 
-					Integer retPtr = module.getReturnPointer();
-					freePtrs.add(new BoxedPointer(retPtr, 16));
+				int retPtr = module.getReturnPointer();
+//					freePtrs.add(new BoxedPointer(retPtr, 16));
 
-					WasmFabric.info("Calling `run` function with " + contentPtr);
-					module.getFunction("run").apply(retPtr, contentPtr.pointer,
-							contentPtr.length);
+				WasmFabric.info("Calling function with " + contentPtr);
+				module.getFunction("reverse").apply(retPtr, contentPtr.pointer,
+						contentPtr.length);
 
-					BoxedPointer resultPtr = module.getBoxedPointer(retPtr);
-					WasmFabric.info("Convert retPtr (" + retPtr + ") into boxedPointer (" + resultPtr + ")");
-					freePtrs.add(resultPtr);
+				BoxedPointer resultPtr = module.getBoxedPointer(retPtr);
+				WasmFabric.info("Convert retPtr (" + retPtr + ") into boxedPointer (" + resultPtr + ")");
+				freePtrs.add(resultPtr);
 
-					WasmFabric.info("Getting result string from WASM's memory");
-					String result = module.getStringFromWasm(resultPtr);
-					WasmFabric.info("result: " + result);
+				WasmFabric.info("Getting result string from WASM's memory");
+				String result = module.getStringFromWasm(resultPtr);
+				WasmFabric.info("result: " + result);
 
-				} catch (ClassCastException e) {
-					WasmFabric.error(e.getMessage());
-				} finally {
-					for (BoxedPointer ptr : freePtrs) {
-						module.free(ptr);
-					}
+			} catch (ClassCastException e) {
+				WasmFabric.error(e.getMessage());
+			} finally {
+				for (BoxedPointer ptr : freePtrs) {
+					module.free(ptr);
 				}
-
-				module.instance.close();
 			}
-
-		} catch (RuntimeException e) {
-			e.printStackTrace();
 		}
 	}
 }

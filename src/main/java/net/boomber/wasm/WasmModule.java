@@ -20,11 +20,12 @@ public class WasmModule {
 	
 	public final Memory memory;
 
+	public static final int RET_POINTER_SIZE = 16;
 	public static final String BINDGEN_MALLOC = "__wbindgen_malloc";
 	public static final String BINDGEN_REALLOC = "__wbindgen_realloc";
 	public static final String BINDGEN_FREE = "__wbindgen_free";
 
-	public Integer WASM_VECTOR_LEN = 0;
+	public int WASM_VECTOR_LEN = 0;
 
 	public WasmModule(ResourceManager manager, Identifier id, String memoryName) throws IOException, RuntimeException {
 		this.id = id;
@@ -45,8 +46,8 @@ public class WasmModule {
 
 	public BoxedPointer passStringToWasm(String content) {
 		byte[] byteData = content.getBytes(StandardCharsets.UTF_8);
-		Integer len = byteData.length;
-		Integer ptr = malloc(len);
+		int len = byteData.length;
+		int ptr = malloc(len);
 		
 		{
 			ByteBuffer buffer = memory.buffer();
@@ -72,8 +73,8 @@ public class WasmModule {
 		return new String(byteData);
 	}
 
-	public Integer getReturnPointer() {
-		return malloc(1);
+	public int getReturnPointer() {
+		return malloc(RET_POINTER_SIZE);
 	}
 
 	public BoxedPointer getBoxedPointer(Integer retPtr) {
@@ -85,14 +86,14 @@ public class WasmModule {
 		return new BoxedPointer(ptr, len);
 	}
 
-	public Integer malloc(Integer byteSize) {
+	public int malloc(Integer byteSize) {
 		Object pointer = getFunction(BINDGEN_MALLOC).apply(byteSize)[0];
-		return (Integer) pointer;
+		return (int) pointer;
 	}
 
-	public Integer realloc(Integer pointer, Integer oldSize, Integer newSize) {
+	public int realloc(Integer pointer, Integer oldSize, Integer newSize) {
 		Object result = getFunction(BINDGEN_REALLOC).apply(pointer, oldSize, newSize)[0];
-		return (Integer) result;
+		return (int) result;
 	}
 
 	public void free(BoxedPointer rangePtr) {
