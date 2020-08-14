@@ -1,6 +1,6 @@
-package net.boomber.wasm.module;
+package net.boomber.wasm.exception;
 
-public class FunctionNotFoundException extends Exception {
+public class FunctionNotFoundException extends RuntimeException {
 	private static final long serialVersionUID = -7534438282401610159L;
 
 	public FunctionNotFoundException(String name) {

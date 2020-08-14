@@ -13,6 +13,7 @@ import org.wasmer.Memory;
 import org.wasmer.Module;
 import org.wasmer.exports.Function;
 
+import net.boomber.wasm.exception.FunctionNotFoundException;
 import net.boomber.wasm.module.ReturnPointer.DataPointer;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
@@ -56,20 +57,33 @@ public class WasmModule {
 	
 	public StringPointer uploadString(String content) {
 		byte[] data = content.getBytes(StandardCharsets.UTF_8);
-		int len = data.length;
+		SlicePointer slicePtr = uploadBytes(data);
+		return new StringPointer(slicePtr.address, slicePtr.size);
+	}
+	
+	public SlicePointer uploadBytes(byte[] bytes) {
+		int len = bytes.length;
 		int ptr = malloc(len);
 		
 		ByteBuffer buffer = buffer();
 		buffer.position(ptr);
-		buffer.put(data);
+		buffer.put(bytes);
 		
-		return new StringPointer(ptr, len);
+		return new SlicePointer(ptr, len);
 	}
 	
 	public String takeString(StringPointer ptr) {
 		try {			
 			return ptr.get(memory);
 		} finally {	
+			free(ptr);
+		}
+	}
+	
+	public byte[] takeBytes(SlicePointer ptr) {
+		try {
+			return ptr.get(memory);
+		} finally {
 			free(ptr);
 		}
 	}
